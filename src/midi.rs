@@ -25,7 +25,7 @@ impl Midi {
 	}
 
 	/// Play the midi using a wave-generator.
-	pub fn run<T:Fn(TrackIndex, &Note, &Velocity), U:Fn(TrackIndex, Duration), V:Fn(TrackIndex, &Note, &Velocity)>(&self, note_down_handler:T, delay_handler:U, note_up_handler:V) {
+	pub fn run<T:Fn(TrackIndex, &Note, &Velocity), V:Fn(TrackIndex, Duration), U:Fn(TrackIndex, &Note, &Velocity)>(&self, note_down_handler:T, note_up_handler:U, delay_handler:V) {
 		let tick_duration:Duration = self.tick_duration();
 		for (track_index, track) in self.tracks.iter().enumerate() {
 			for command in &track.0 {

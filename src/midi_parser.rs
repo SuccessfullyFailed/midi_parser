@@ -21,8 +21,6 @@ impl MidiParser {
 			bytes_size: 0,
 			cursor: 0
 		}
-
-		
 	}
 
 	/// Create a new midi parser from midi file contents.
