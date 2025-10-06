@@ -1,7 +1,6 @@
 
-const MIDI_NOTE_NAME_ORDER:&[&str] = &["C", "C#", "D", "D#", "E", "F", "F#", "A", "A#", "B"];
+const MIDI_NOTE_NAME_ORDER:&[&str] = &["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const MIDI_NOTE_NAME_COUNT:u8 = MIDI_NOTE_NAME_ORDER.len() as u8;
-const MIDI_OCT_UP_NOTE_OFFSET:u8 = 3;
 
 
 
@@ -15,11 +14,11 @@ impl Note {
 	/// Create a new note by midi id.
 	pub fn from_midi_id(id:u8) -> Note {
 		let note:u8 = id % MIDI_NOTE_NAME_COUNT;
-		let octave:u8 = (id + MIDI_OCT_UP_NOTE_OFFSET) / MIDI_NOTE_NAME_COUNT;
+		let octave:u8 = id / MIDI_NOTE_NAME_COUNT;
 		Note {
 			note,
 			octave,
-			name: format!("{note}{octave}")
+			name: format!("{}{}", MIDI_NOTE_NAME_ORDER[note as usize], octave)
 		}
 	}
 

@@ -176,6 +176,9 @@ impl MidiParser {
 				*tempo = u32::from_be_bytes([0, data[0], data[1], data[2]]);
 			},
 
+			// TODO: SMPTE Offset
+			0x54 => {},
+
 			// TODO: Time signature
 			0x58 => {},
 
@@ -198,7 +201,7 @@ impl MidiParser {
 			0xFC => {},
 
 			// Invalid command
-			_ => return Err(format!("Nonexistent meta event command found in midi: {:#0x}", command).into())
+			_ => eprintln!("Nonexistent meta event command found in midi: {:#0x}", command) // as Meta events et their arguments dynamically, this will not break the rest of the midi parsing
 		}
 		Ok(())
 	}
