@@ -15,7 +15,7 @@ impl Note {
 	/// Create a new note by midi id.
 	pub fn from_midi_id(id:u8) -> Note {
 		let note:u8 = id % MIDI_NOTE_NAME_COUNT;
-		let octave:u8 = ((id + MIDI_OCT_UP_NOTE_OFFSET) / MIDI_NOTE_NAME_COUNT) - 1;
+		let octave:u8 = (id + MIDI_OCT_UP_NOTE_OFFSET) / MIDI_NOTE_NAME_COUNT;
 		Note {
 			note,
 			octave,

@@ -1,4 +1,4 @@
-use crate::{ Midi, MidiCommand, MidiTrack, Note };
+use crate::{ Midi, MidiCommand, MidiTrack, Note, FILE_HEADER_CHUNK, FILE_TRACK_HEADER };
 use std::{ error::Error };
 
 
@@ -28,8 +28,6 @@ impl MidiParser {
 
 	/// Parse the contents into midi.
 	pub fn parse(mut self) -> Result<Midi, Box<dyn Error>> {
-		const FILE_HEADER_CHUNK:&[u8] = &[0x4D, 0x54, 0x68, 0x64, 0x00, 0x00, 0x00, 0x06];
-		const TRACK_HEADER:&[u8] = &[0x4D, 0x54, 0x72, 0x6B];
 		const DEFAULT_TEMPO:u32 = 60;
 
 		// Parse header.
@@ -43,10 +41,9 @@ impl MidiParser {
 
 		// Parse tracks.
 		let mut tracks:Vec<MidiTrack> = Vec::new();
-		while tracks.len() < track_count as usize && self.take_conditional(TRACK_HEADER.len(), |bytes| bytes == TRACK_HEADER).is_some() {
+		while tracks.len() < track_count as usize && self.take_conditional(FILE_TRACK_HEADER.len(), |bytes| bytes == FILE_TRACK_HEADER).is_some() {
 			let track_length:u32 = u32::from_be_bytes(self.take_c());
 			let cursor_end:usize = self.cursor + track_length as usize;
-
 			// Parse track content.
 			let mut continue_parsing_track:bool = true;
 			let mut track_data:Vec<MidiCommand> = Vec::new();
