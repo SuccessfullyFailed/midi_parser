@@ -4,4 +4,4 @@ mod midi_parser;
 
 pub use note::*;
 pub use midi::*;
-pub use midi_parser::*;
+pub(crate) use midi_parser::*;

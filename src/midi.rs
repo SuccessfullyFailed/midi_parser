@@ -1,5 +1,5 @@
-use std::time::Duration;
-use crate::Note;
+use std::{ error::Error, fs::File, io::Read, time::Duration };
+use crate::{ MidiParser, Note };
 
 
 
@@ -15,6 +15,8 @@ pub struct Midi {
 }
 impl Midi {
 
+	/* CONSTRUCTOR METHODS */
+
 	/// Create a new midi struct.
 	pub fn new(tempo:u32, delta_time:u32, tracks:Vec<MidiTrack>) -> Midi {
 		Midi {
@@ -24,6 +26,23 @@ impl Midi {
 		}
 	}
 
+	/// Create a new midi by reading a file.
+	pub fn from_file(file:&str) -> Result<Midi, Box<dyn Error>> {
+		let mut file_content:Vec<u8> = Vec::new();
+		let mut file:File = File::open(file)?;
+		file.read_to_end(&mut file_content)?;
+		Midi::from_content(file_content)
+	}
+
+	/// Create a new midi from midi content.
+	pub fn from_content(content:Vec<u8>) -> Result<Midi, Box<dyn Error>> {
+		MidiParser::new(content).parse()
+	}
+
+
+
+	/* USAGE METHODS */
+	
 	/// Play the midi using a wave-generator.
 	pub fn run<T:Fn(TrackIndex, &Note, &Velocity), V:Fn(TrackIndex, Duration), U:Fn(TrackIndex, &Note, &Velocity)>(&self, note_down_handler:T, note_up_handler:U, delay_handler:V) {
 		let tick_duration:Duration = self.tick_duration();

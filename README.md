@@ -19,10 +19,9 @@ A simple yet flexible Rust crate for parsing and playing back **MIDI files** in 
 Here’s how you might use `midi_parser` to control a virtual piano inside a game:
 
 ```rust
-use crate::{ Midi, MidiParser };
+use crate::Midi;
 
-let parser:MidiParser = MidiParser::from_file("assets/song.mid");
-let midi:Midi = parser.parse().expect("Could not parse midi file");
+let midi:Midi = Midi::from_file("assets/song.mid").expect("Could not parse midi file");
 
 // Run with own event-handlers.
 midi.run(

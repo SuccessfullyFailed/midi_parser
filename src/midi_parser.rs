@@ -1,10 +1,9 @@
 use crate::{ Midi, MidiCommand, MidiTrack, Note };
-use std::{ fs::File, io::Read, error::Error };
+use std::{ error::Error };
 
 
 
-pub struct MidiParser {
-	content_source:Option<String>,
+pub(crate) struct MidiParser {
 	bytes:Vec<u8>,
 	bytes_size:usize,
 	cursor:usize
@@ -13,21 +12,10 @@ impl MidiParser {
 
 	/* CONSTRUCTOR METHODS */
 
-	/// Create a new midi parser by reading a file.
-	pub fn from_file(file:&str) -> MidiParser {
-		MidiParser {
-			content_source: Some(file.to_string()),
-			bytes: Vec::new(),
-			bytes_size: 0,
-			cursor: 0
-		}
-	}
-
-	/// Create a new midi parser from midi file contents.
-	pub fn from_content(content:Vec<u8>) -> MidiParser {
+	/// Create a new midi parser from midi file content.
+	pub fn new(content:Vec<u8>) -> MidiParser {
 		let bytes_size:usize = content.len();
 		MidiParser {
-			content_source: None,
 			bytes: content,
 			bytes_size,
 			cursor: 0
@@ -43,15 +31,6 @@ impl MidiParser {
 		const FILE_HEADER_CHUNK:&[u8] = &[0x4D, 0x54, 0x68, 0x64, 0x00, 0x00, 0x00, 0x06];
 		const TRACK_HEADER:&[u8] = &[0x4D, 0x54, 0x72, 0x6B];
 		const DEFAULT_TEMPO:u32 = 60;
-
-		// If source set, try to read the file.
-		if let Some(source_path) = &self.content_source {
-			let mut file:File = File::open(source_path)?;
-			let mut file_content:Vec<u8> = Vec::new();
-			file.read_to_end(&mut file_content)?;
-			self.bytes_size = file_content.len();
-			self.bytes = file_content;
-		}
 
 		// Parse header.
 		if &self.take(FILE_HEADER_CHUNK.len()) != FILE_HEADER_CHUNK {
