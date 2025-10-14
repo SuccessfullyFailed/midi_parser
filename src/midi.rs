@@ -44,21 +44,50 @@ impl Midi {
 	/* USAGE METHODS */
 	
 	/// Play the midi using a wave-generator.
-	pub fn run<T:Fn(TrackIndex, &Note, &Velocity), V:Fn(TrackIndex, Duration), U:Fn(TrackIndex, &Note, &Velocity)>(&self, note_down_handler:T, note_up_handler:U, delay_handler:V) {
+	pub fn run<T:Fn(TrackIndex, &Note, &Velocity), U:Fn(TrackIndex, &Note, &Velocity), V:Fn(Duration)>(&self, note_down_handler:T, note_up_handler:U, delay_handler:V) {
+
+		// Prepare timing variables.
 		let tick_duration:Duration = self.tick_duration();
-		for (track_index, track) in self.tracks.iter().enumerate() {
-			for command in &track.0 {
-				if command.delay_ticks != 0 {
-					let sleep_time:Duration = tick_duration * command.delay_ticks as u32;
-					delay_handler(track_index, sleep_time);
-				}
-				if let Some((note_state, note, velocity)) = &command.key_state {
-					if *note_state {
-						note_down_handler(track_index, note, velocity);
-					} else {
-						note_up_handler(track_index, note, velocity);
+		let mut tick_count:u64 = 0;
+		let mut valid_track_indexes:Vec<usize> = self.tracks.iter().enumerate().filter(|(_, track)| !track.0.is_empty()).map(|(index, _)| index).collect();
+		let mut tick_timers:Vec<u64> = vec![0; valid_track_indexes.iter().last().map(|last_index| last_index + 1).unwrap_or_default()];
+		let mut command_indexes:Vec<usize> = vec![0; self.tracks.len()];
+
+		// Find the track with the nearest commands.
+		while !valid_track_indexes.is_empty() {
+
+			// Execute next commands in tracks with reached timer.
+			if let Some(&track_index) = valid_track_indexes.iter().find(|track_index| tick_timers[**track_index] <= tick_count) {
+				let tick_timer:&mut u64 = &mut tick_timers[track_index];
+				let command_index:&mut usize = &mut command_indexes[track_index];
+
+				// Execute the next command.
+				while *tick_timer <= tick_count && *command_index < self.tracks[track_index].0.len() {
+					match &self.tracks[track_index].0[*command_index] {
+						MidiCommand::Delay(ticks) => {
+							*tick_timer += *ticks;
+						},
+						MidiCommand::SetKeyState(note, state, velocity) => {
+							if *state {
+								note_down_handler(track_index, note, velocity);
+							} else {
+								note_up_handler(track_index, note, velocity)
+							}
+						}
+					}
+					*command_index += 1;
+					if *command_index >= self.tracks[track_index].0.len() {
+						valid_track_indexes.retain(|index| *index != track_index);
 					}
 				}
+			}
+
+			// No reached timer was found, delay until the next timer.
+			else {
+				let smallest_timer:u64 = valid_track_indexes.iter().map(|track_index| tick_timers[*track_index]).min().unwrap();
+				let delay:u64 = smallest_timer - tick_count;
+				delay_handler(tick_duration * delay as u32);
+				tick_count += delay;
 			}
 		}
 	}
@@ -75,19 +104,8 @@ pub struct MidiTrack(pub(crate) Vec<MidiCommand>);
 
 
 
-pub(crate) struct MidiCommand {
-	pub _midi_channel:u8,
-	pub delay_ticks:u64,
-	pub key_state:Option<(bool, Note, Velocity)>
-}
-impl MidiCommand {
-
-	/// Create a new state-change command.
-	pub fn state_change(midi_channel:u8, delay_ticks:u64, state:bool, note_id:Note, velocity:Velocity) -> MidiCommand {
-		MidiCommand {
-			_midi_channel: midi_channel,
-			delay_ticks,
-			key_state: Some((state, note_id, velocity))
-		}
-	}
+#[derive(PartialEq, Eq, Debug)]
+pub(crate) enum MidiCommand {
+	Delay(u64),
+	SetKeyState(Note, bool, Velocity)
 }

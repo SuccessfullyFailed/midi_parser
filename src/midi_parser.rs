@@ -79,29 +79,20 @@ impl MidiParser {
 	}
 
 	/// Parse a normal event and handle the action tied to it.
-	fn parse_event(&mut self, command:u8, midi_channel:u8, delay_ticks:u64, track_data:&mut Vec<MidiCommand>, _continue_parsing_track:&mut bool) -> Result<(), Box<dyn Error>> {
+	fn parse_event(&mut self, command:u8, _midi_channel:u8, delay_ticks:u64, track_data:&mut Vec<MidiCommand>, _continue_parsing_track:&mut bool) -> Result<(), Box<dyn Error>> {
+		if delay_ticks > 0 {
+			track_data.push(MidiCommand::Delay(delay_ticks));
+		}
 		match command {
 			
 			// Release note
 			0x08 => {
-				track_data.push(MidiCommand::state_change(
-					midi_channel,
-					delay_ticks,
-					false,
-					Note::from_midi_id(self.take_one()),
-					self.take_one()
-				));
+				track_data.push(MidiCommand::SetKeyState(Note::from_midi_id(self.take_one()), false, self.take_one()));
 			},
 
 			// Press note
 			0x09 => {
-				track_data.push(MidiCommand::state_change(
-					midi_channel,
-					delay_ticks,
-					true,
-					Note::from_midi_id(self.take_one()),
-					self.take_one()
-				));
+				track_data.push(MidiCommand::SetKeyState(Note::from_midi_id(self.take_one()), true, self.take_one()));
 			},
 
 			// Todo: Key after-touch

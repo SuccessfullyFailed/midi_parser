@@ -4,6 +4,7 @@ const MIDI_NOTE_NAME_COUNT:u8 = MIDI_NOTE_NAME_ORDER.len() as u8;
 
 
 
+#[derive(Clone, PartialEq, Eq)]
 pub struct Note {
 	pub note:u8,
 	pub octave:u8,
@@ -25,5 +26,15 @@ impl Note {
 	/// Create a new note from note and octave. Combines them into a midi id then recurses into from_midi_id to make sure all values are withing valid ranges.
 	pub fn new(note:u8, octave:u8) -> Note {
 		Note::from_midi_id(octave * MIDI_NOTE_NAME_COUNT + note)
+	}
+}
+impl std::fmt::Debug for Note {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "{}", self.name)
+	}
+}
+impl std::fmt::Display for Note {
+	fn fmt(&self, f:&mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "{}", self.name)
 	}
 }

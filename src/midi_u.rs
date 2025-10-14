@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-	use crate::{ Midi, FILE_HEADER_CHUNK, FILE_TRACK_HEADER };
+	use crate::{ Midi, MidiCommand, Note, FILE_HEADER_CHUNK, FILE_TRACK_HEADER };
 
 
 
@@ -85,12 +85,10 @@ mod tests {
 		assert_eq!(midi.tempo, 8);
 		assert_eq!(midi.tracks.len(), 3);
 		for track_index in 0..3 {
-			assert_eq!(midi.tracks[track_index].0.len(), (track_index + 1) * 2);
+			assert_eq!(midi.tracks[track_index].0.len(), (track_index + 1) * 4);
 			for command_index in 0..(track_index + 1) * 2 {
-				assert_eq!(midi.tracks[track_index].0[command_index]._midi_channel, track_index as u8);
-				assert_eq!(midi.tracks[track_index].0[command_index].delay_ticks, (command_index as u64 + 1) * 4);
-				assert_eq!(midi.tracks[track_index].0[command_index].key_state.as_ref().unwrap().0, command_index % 2 == 0);
-				assert_eq!(midi.tracks[track_index].0[command_index].key_state.as_ref().unwrap().2, command_index as u8 * 12);
+				assert_eq!(midi.tracks[track_index].0[command_index * 2], MidiCommand::Delay((command_index as u64 + 1) * 4));
+				assert_eq!(midi.tracks[track_index].0[command_index * 2 + 1], MidiCommand::SetKeyState(Note::from_midi_id(6), command_index % 2 == 0, command_index as u8 * 12));
 			}
 		}
 	}
