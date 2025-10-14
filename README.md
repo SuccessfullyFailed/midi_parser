@@ -41,10 +41,8 @@ midi.run(
 	},
 
 	// Delay handler
-	|track_index, delay| {
-		if track_index == 0 {
-			std::thread::sleep(delay);
-		}
+	|delay| {
+		std::thread::sleep(delay);
 	}
 );
 ```
